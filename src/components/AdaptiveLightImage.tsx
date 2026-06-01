@@ -5,11 +5,9 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import Animated, { interpolateColor, useAnimatedStyle } from 'react-native-reanimated';
 import { useAmbientLight } from '../hooks/useAmbientLight';
 import type { AdaptiveLightImageProps } from '../types';
-
-const AnimatedImage = Animated.createAnimatedComponent(NativeImage);
+import { interpolateColor } from '../utils/interpolateColor';
 
 function resolveImageSource(sourcePath: string | ImageSourcePropType) {
   if (typeof sourcePath === 'string') {
@@ -35,13 +33,7 @@ export default function AdaptiveLightImage({
     []
   );
 
-  const imageStyle = useAnimatedStyle(() => ({
-    tintColor: interpolateColor(
-      luminosity.value,
-      [0, 1],
-      [colors.dark, colors.light]
-    ),
-  }));
+  const tintColor = interpolateColor(luminosity, colors.dark, colors.light);
 
   const rotationStyle = {
     transform: [{ rotate: `${rotationAngle}deg` }],
@@ -49,10 +41,10 @@ export default function AdaptiveLightImage({
 
   return (
     <View pointerEvents="none" style={styles.container}>
-      <AnimatedImage
+      <NativeImage
         source={resolveImageSource(sourcePath)}
         resizeMode={resizeMode}
-        style={[styles.image, rotationStyle, imageStyle]}
+        style={[styles.image, rotationStyle, { tintColor }]}
       />
     </View>
   );

@@ -1,14 +1,9 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  interpolateColor,
-  useAnimatedProps,
-} from 'react-native-reanimated';
 import { SvgUri } from 'react-native-svg';
 import { useAmbientLight } from '../hooks/useAmbientLight';
 import type { AdaptiveLightSvgProps } from '../types';
-
-const AnimatedSvgUri = Animated.createAnimatedComponent(SvgUri);
+import { interpolateColor } from '../utils/interpolateColor';
 
 export default function AdaptiveLightSvg({
   sourcePath,
@@ -25,24 +20,14 @@ export default function AdaptiveLightSvg({
     []
   );
 
-  const animatedProps = useAnimatedProps(() => {
-    const color = interpolateColor(
-      luminosity.value,
-      [0, 1],
-      [colors.dark, colors.light]
-    );
-
-    return {
-      color,
-      fill: color,
-    } as Record<string, unknown>;
-  });
+  const color = interpolateColor(luminosity, colors.dark, colors.light);
 
   return (
     <View pointerEvents="none" style={styles.container}>
-      <AnimatedSvgUri
+      <SvgUri
         uri={sourcePath}
-        animatedProps={animatedProps}
+        color={color}
+        fill={color}
         width="100%"
         height="100%"
         style={{ transform: [{ rotate: `${rotationAngle}deg` }] }}

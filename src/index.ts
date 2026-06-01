@@ -9,3 +9,15 @@ export type {
   AmbientLightConfig,
   AmbientLightState,
 } from './types';
+
+import AdaptiveLightImage from './components/AdaptiveLightImage';
+import AdaptiveLightOverlay from './components/AdaptiveLightOverlay';
+import AdaptiveLightSvg from './components/AdaptiveLightSvg';
+import { useAmbientLight } from './hooks/useAmbientLight';
+
+export default {
+  AdaptiveLightImage,
+  AdaptiveLightOverlay,
+  AdaptiveLightSvg,
+  useAmbientLight,
+};

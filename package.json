@@ -2,9 +2,11 @@
   "name": "adaptive-overlay-image",
   "version": "0.1.0",
   "description": "React Native library for adapting image and SVG appearance to ambient light on Android.",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "index.js",
+  "types": "index.d.ts",
   "files": [
+    "index.js",
+    "index.d.ts",
     "src",
     "android",
     "example",
@@ -25,7 +27,6 @@
   "peerDependencies": {
     "react": "*",
     "react-native": "*",
-    "react-native-reanimated": "*",
     "react-native-svg": "*"
   },
   "devDependencies": {

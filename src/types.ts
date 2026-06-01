@@ -1,9 +1,8 @@
 import type { ImageSourcePropType } from 'react-native';
-import type { SharedValue } from 'react-native-reanimated';
 
 export type AmbientLightState = {
   lux: number;
-  luminosity: SharedValue<number>;
+  luminosity: number;
   isSensorAvailable: boolean;
 };
 

@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   NativeEventEmitter,
   type EmitterSubscription,
 } from 'react-native';
-import { useSharedValue, withTiming } from 'react-native-reanimated';
 import {
   AmbientLightSensor,
   isAmbientLightSensorAvailable,
@@ -32,12 +31,19 @@ export function useAmbientLight(config: AmbientLightConfig = {}) {
     onLuxChange,
   } = config;
 
-  const luminosity = useSharedValue(DEFAULT_LUMINOSITY);
   const [lux, setLux] = useState(0);
+  const [luminosity, setLuminosity] = useState(DEFAULT_LUMINOSITY);
+  const currentLuminosityRef = useRef(DEFAULT_LUMINOSITY);
+  const animationFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!enabled || !AmbientLightSensor) {
-      luminosity.value = DEFAULT_LUMINOSITY;
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      currentLuminosityRef.current = DEFAULT_LUMINOSITY;
+      setLuminosity(DEFAULT_LUMINOSITY);
       setLux(0);
       return;
     }
@@ -71,9 +77,36 @@ export function useAmbientLight(config: AmbientLightConfig = {}) {
         setLux(illuminance);
         onLuxChange?.(illuminance);
 
-        luminosity.value = withTiming(normalized, {
-          duration: transitionDuration,
-        });
+        if (transitionDuration <= 0) {
+          currentLuminosityRef.current = normalized;
+          setLuminosity(normalized);
+          return;
+        }
+
+        if (animationFrameRef.current !== null) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+
+        const fromValue = currentLuminosityRef.current;
+        const startTime = Date.now();
+
+        const step = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(1, elapsed / transitionDuration);
+          const nextValue =
+            fromValue + (normalized - fromValue) * progress;
+
+          currentLuminosityRef.current = nextValue;
+          setLuminosity(nextValue);
+
+          if (progress < 1) {
+            animationFrameRef.current = requestAnimationFrame(step);
+          } else {
+            animationFrameRef.current = null;
+          }
+        };
+
+        animationFrameRef.current = requestAnimationFrame(step);
       }
     );
 
@@ -81,13 +114,16 @@ export function useAmbientLight(config: AmbientLightConfig = {}) {
 
     return () => {
       subscription?.remove();
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
       AmbientLightSensor.stop();
     };
   }, [
     brightThreshold,
     darkThreshold,
     enabled,
-    luminosity,
     onLuxChange,
     transitionDuration,
   ]);
